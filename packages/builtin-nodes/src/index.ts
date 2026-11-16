@@ -1,4 +1,5 @@
 import { defineNode, port, z, type NodeDefinition } from "@nexus-flow/node-sdk";
+import { NodeRegistry } from "@nexus-flow/workflow-engine";
 
 const emptyConfig = z.record(z.string(), z.unknown());
 const manualConfig = z.object({}).passthrough();
@@ -261,9 +262,10 @@ export const builtInNodes: NodeDefinition[] = [
   createHttpRequestNode()
 ];
 
-export function createBuiltinNodeRegistry() {
-  // Lazy import keeps the SDK package independent from a specific registry implementation.
-  return builtInNodes;
+export function createBuiltinNodeRegistry(): NodeRegistry {
+  const registry = new NodeRegistry();
+  for (const definition of builtInNodes) registry.register(definition.type, definition.execute);
+  return registry;
 }
 
 export const builtInNodeTypes = builtInNodes.map((node) => node.type).sort();
