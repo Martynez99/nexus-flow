@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deserializeWorkflow, validateWorkflow } from "./index.js";
 
-const validWorkflow = {
+const validWorkflow: any = {
   id: "wf-hello",
   name: "Hello workflow",
   version: 1,
