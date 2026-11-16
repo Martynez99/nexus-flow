@@ -57,6 +57,13 @@ describe("workflow validation", () => {
     expect(validateWorkflow(input).issues.some((issue) => issue.code === "INCOMPATIBLE_PORT_TYPES")).toBe(true);
   });
 
+  it("accepts configured dynamic output handles", () => {
+    const input = structuredClone(validWorkflow);
+    input.nodes[0].outputs = [{ id: "*", name: "Dynamic output", dataType: "boolean", dynamic: true }];
+    input.edges[0].sourceHandle = "ready";
+    input.edges[0].type = "conditional";
+    expect(validateWorkflow(input).valid).toBe(true);
+  });
   it("returns a useful error for malformed JSON", () => {
     expect(deserializeWorkflow("{").issues[0]?.code).toBe("INVALID_JSON");
   });
