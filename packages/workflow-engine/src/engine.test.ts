@@ -1,0 +1,83 @@
+import { describe, expect, it } from "vitest";
+import { WorkflowEngine } from "./engine.js";
+import { NodeRegistry } from "./registry.js";
+import { createExecutionPlan } from "./planner.js";
+import { WorkflowExecutionError } from "./types.js";
+import type { WorkflowDefinition } from "@nexus-flow/workflow-schema";
+
+const node = (id: string, type = id, category: "trigger" | "action" = "action", inputs: {id:string;name:string;dataType:"any";required?:boolean}[] = [], outputs: {id:string;name:string;dataType:"any"}[] = []) => ({
+  id, type, name: id, category, position: { x: 0, y: 0 }, inputs, outputs, config: {}
+});
+
+const workflow = (nodes: ReturnType<typeof node>[], edges: WorkflowDefinition["edges"] = []): WorkflowDefinition => ({
+  id: "wf-test", name: "Test workflow", description: "", version: 1, nodes, edges,
+  settings: { timeoutMs: 300000, retries: 0, maxConcurrency: 4 }
+});
+
+describe("workflow execution engine", () => {
+  it("builds a deterministic topological plan", () => {
+    const definition = workflow([node("c"), node("b"), node("a")], [
+      { id: "ab", source: "a", sourceHandle: "out", target: "b", targetHandle: "in", type: "default" },
+      { id: "bc", source: "b", sourceHandle: "out", target: "c", targetHandle: "in", type: "default" }
+    ]);
+    expect(createExecutionPlan(definition).map((layer) => layer.map((item) => item.id))).toEqual([["a"], ["b"], ["c"]]);
+  });
+
+  it("rejects cyclic graphs", () => {
+    const definition = workflow([node("a"), node("b")], [
+      { id: "ab", source: "a", sourceHandle: "out", target: "b", targetHandle: "in", type: "default" },
+      { id: "ba", source: "b", sourceHandle: "out", target: "a", targetHandle: "in", type: "default" }
+    ]);
+    expect(() => createExecutionPlan(definition)).toThrowError(WorkflowExecutionError);
+  });
+
+  it("passes upstream output into the downstream input", async () => {
+    const definition = workflow([
+      node("trigger", "manual.trigger", "trigger", [], [{ id: "payload", name: "Payload", dataType: "any" }]),
+      node("upper", "text.upper", "action", [{ id: "value", name: "Value", dataType: "any", required: true }], [{ id: "result", name: "Result", dataType: "any" }])
+    ], [{ id: "edge-1", source: "trigger", sourceHandle: "payload", target: "upper", targetHandle: "value", type: "default" }]);
+
+    const registry = new NodeRegistry()
+      .register("manual.trigger", ({ input }) => ({ payload: input.input }))
+      .register("text.upper", ({ input }) => ({ result: String(input.value).toUpperCase() }));
+
+    const result = await new WorkflowEngine(registry).execute({
+      workflow: definition, executionId: "exec-1", input: "hello"
+    });
+
+    expect(result.status).toBe("completed");
+    expect(result.outputs.upper?.result).toBe("HELLO");
+    expect(result.nodes).toHaveLength(2);
+  });
+
+  it("fails clearly for an unregistered node", async () => {
+    const definition = workflow([node("unknown", "missing.executor")]);
+    const result = await new WorkflowEngine(new NodeRegistry()).execute({
+      workflow: definition, executionId: "exec-2"
+    });
+    expect(result.status).toBe("failed");
+    expect(result.error?.message).toContain("missing.executor");
+  });
+
+  it("stops downstream execution after a node failure", async () => {
+    const definition = workflow([node("first"), node("second")], [
+      { id: "edge", source: "first", sourceHandle: "out", target: "second", targetHandle: "in", type: "default" }
+    ]);
+    const registry = new NodeRegistry()
+      .register("first", () => { throw new Error("boom"); })
+      .register("second", () => ({ ok: true }));
+    const result = await new WorkflowEngine(registry).execute({ workflow: definition, executionId: "exec-3" });
+    expect(result.status).toBe("failed");
+    expect(result.nodes.map((item) => item.nodeId)).toEqual(["first"]);
+  });
+
+  it("supports cancellation before execution begins", async () => {
+    const definition = workflow([node("first")]);
+    const controller = new AbortController();
+    controller.abort();
+    const result = await new WorkflowEngine(new NodeRegistry().register("first", () => ({}))).execute({
+      workflow: definition, executionId: "exec-4", signal: controller.signal
+    });
+    expect(result.status).toBe("cancelled");
+  });
+});
