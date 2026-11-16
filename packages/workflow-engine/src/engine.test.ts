@@ -87,6 +87,24 @@ describe("workflow execution engine", () => {
     expect(result.nodes.map((item) => item.nodeId)).toEqual(["first"]);
   });
 
+  it("runs only the active conditional branch", async () => {
+    const definition = workflow([
+      node("condition", "condition", "action", [], [{ id: "yes", name: "Yes", dataType: "any" }, { id: "no", name: "No", dataType: "any" }]),
+      node("yes-branch", "branch.yes"),
+      node("no-branch", "branch.no")
+    ], [
+      { id: "yes-edge", source: "condition", sourceHandle: "yes", target: "yes-branch", targetHandle: "in", type: "conditional" },
+      { id: "no-edge", source: "condition", sourceHandle: "no", target: "no-branch", targetHandle: "in", type: "conditional" }
+    ]);
+    const registry = new NodeRegistry()
+      .register("condition", () => ({ yes: true, no: false }))
+      .register("branch.yes", () => ({ ran: true }))
+      .register("branch.no", () => ({ ran: true }));
+    const result = await new WorkflowEngine(registry).execute({ workflow: definition, executionId: "exec-branch" });
+    expect(result.status).toBe("completed");
+    expect(result.nodes.find((item) => item.nodeId === "yes-branch")?.status).toBe("completed");
+    expect(result.nodes.find((item) => item.nodeId === "no-branch")?.status).toBe("skipped");
+  });
   it("supports cancellation before execution begins", async () => {
     const definition = workflow([node("first")]);
     const controller = new AbortController();
