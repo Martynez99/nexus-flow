@@ -4,7 +4,7 @@
 
 NEXUS FLOW is a modular automation platform being built to connect apps, APIs, data, and AI agents through visual, versioned workflows. Its goal is to give teams a self-hostable alternative to closed automation platforms, with an extensible connector SDK and secure execution architecture.
 
-> **Project status: early development.** The repository currently contains the monorepo foundation, a Fastify health endpoint, shared execution types, and the first version of the workflow schema and structural validator. The visual editor, persistent execution engine, authentication, production connectors, and isolated code execution are planned and are not yet production-ready.
+> **Project status: early development.** The repository includes the monorepo foundation, a workflow schema and validator, an in-process execution engine, a node SDK, and an initial built-in node catalog. The visual editor, persistent/distributed execution, authentication, production-grade connector infrastructure, and isolated code execution are still under development.
 
 ## What NEXUS FLOW is designed to provide
 
@@ -25,7 +25,9 @@ NEXUS FLOW is a modular automation platform being built to connect apps, APIs, d
 | Shared execution types | Implemented |
 | Workflow schema (Zod) | Initial implementation |
 | Structural workflow validation | Initial implementation |
-| Workflow execution engine | Planned |
+| Workflow execution engine | Initial in-process engine implemented; durable/distributed execution planned |
+| Node SDK | Initial implementation |
+| Built-in node catalog | Initial triggers, data, logic, actions and HTTP nodes |
 | React visual editor | Planned |
 | PostgreSQL/Prisma persistence | Planned |
 | Redis/BullMQ queue | Planned |
@@ -58,9 +60,11 @@ apps/
 packages/
   shared/              Shared types and utilities
   workflow-schema/     Versioned workflow contracts and validation
-  workflow-engine/     Planned deterministic workflow execution core
-  integration-sdk/     Planned connector authoring contracts
-docs/                  Architecture and contributor documentation
+  workflow-engine/     Deterministic in-process workflow execution core
+  node-sdk/             Typed custom-node authoring SDK
+  builtin-nodes/        Trigger, data, logic, action and HTTP nodes
+  integration-sdk/      Planned connector authoring contracts
+docs/                  Architecture, execution and node catalog documentation
 .github/workflows/     Continuous integration
 ```
 
