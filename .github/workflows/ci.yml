@@ -16,5 +16,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm install --no-frozen-lockfile
-      - run: pnpm typecheck
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Run tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
