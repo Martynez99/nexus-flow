@@ -73,7 +73,10 @@ describe("workflow execution engine", () => {
   });
 
   it("stops downstream execution after a node failure", async () => {
-    const definition = workflow([node("first"), node("second")], [
+    const definition = workflow([
+      node("first", "first", "action", [], [{ id: "out", name: "Output", dataType: "any" }]),
+      node("second", "second", "action", [{ id: "in", name: "Input", dataType: "any" }])
+    ], [
       { id: "edge", source: "first", sourceHandle: "out", target: "second", targetHandle: "in", type: "default" }
     ]);
     const registry = new NodeRegistry()
