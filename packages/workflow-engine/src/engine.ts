@@ -62,6 +62,23 @@ function resolveInputs(
   return inputs;
 }
 
+function validatePortValues(node: WorkflowNode, direction: "inputs" | "outputs", values: Record<string, unknown>): void {
+  for (const port of node[direction]) {
+    const present = Object.hasOwn(values, port.id);
+    if (!present) {
+      if (direction === "inputs" && port.required) throw new WorkflowExecutionError(`Required input "${port.id}" is missing`, "REQUIRED_INPUT_MISSING", node.id);
+      continue;
+    }
+    const value = values[port.id];
+    const valid = port.dataType === "any" ||
+      (port.dataType === "string" && typeof value === "string") ||
+      (port.dataType === "number" && typeof value === "number" && Number.isFinite(value)) ||
+      (port.dataType === "boolean" && typeof value === "boolean") ||
+      (port.dataType === "array" && Array.isArray(value)) ||
+      (port.dataType === "object" && value !== null && typeof value === "object" && !Array.isArray(value));
+    if (!valid) throw new WorkflowExecutionError(`Port "${port.id}" expected ${port.dataType}`, "PORT_TYPE_MISMATCH", node.id);
+  }
+}
 export class WorkflowEngine {
   constructor(private readonly registry: NodeRegistry) {}
 
@@ -116,6 +133,7 @@ export class WorkflowEngine {
             }
             const executor = this.registry.get(node.type);
             const input = resolveInputs(node, workflow, outputs, request.input);
+            validatePortValues(node, "inputs", input);
             const context: NodeExecutionContext = {
               executionId,
               workflowId: workflow.id,
@@ -125,6 +143,8 @@ export class WorkflowEngine {
               log: (level, message, data) => logger(level, message, { nodeId: node.id, ...data })
             };
             const output = await executor({ node, input, config: node.config, context });
+            if (!output || typeof output !== "object" || Array.isArray(output)) throw new WorkflowExecutionError("Node executor must return an output object", "INVALID_NODE_OUTPUT", node.id);
+            validatePortValues(node, "outputs", output);
             if (signal.aborted) throw new WorkflowExecutionError("Execution cancelled", "CANCELLED", node.id);
             return {
               node,
