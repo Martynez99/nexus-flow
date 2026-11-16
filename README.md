@@ -2,21 +2,36 @@
 
 **Open-source, self-hosted, AI-native workflow automation.**
 
-NEXUS FLOW is being built as a modular automation platform with a visual workflow editor, durable execution, an extensible connector SDK, and native AI-agent orchestration.
+NEXUS FLOW is a modular automation platform being built to connect apps, APIs, data, and AI agents through visual, versioned workflows. Its goal is to give teams a self-hostable alternative to closed automation platforms, with an extensible connector SDK and secure execution architecture.
 
-> **Development status:** early foundation. The repository currently contains the monorepo scaffold. Backend execution, persistence, authentication, connector implementations, and sandboxed code execution are not yet production-ready.
+> **Project status: early development.** The repository currently contains the monorepo foundation, a Fastify health endpoint, shared execution types, and the first version of the workflow schema and structural validator. The visual editor, persistent execution engine, authentication, production connectors, and isolated code execution are planned and are not yet production-ready.
 
-## Product direction
+## What NEXUS FLOW is designed to provide
 
-- Visual, drag-and-drop workflow editor built with React Flow.
-- TypeScript-first workflow definitions and connector SDK.
-- Fastify API with PostgreSQL/Prisma persistence.
-- Redis and BullMQ for background execution.
-- Separate workers for workflow execution and untrusted code.
-- AI agents, tools, memory, retrieval, and human approval steps.
-- Self-hosted deployment with Docker Compose.
-- Reliability primitives: immutable workflow versions, retries, idempotency, cancellation, checkpoints, and execution history.
-- Security-first design: tenant isolation, encrypted credentials, least privilege, and isolated code runtimes.
+- **Visual workflow builder** — drag-and-drop nodes, typed ports, branching, and workflow inspection.
+- **App and API integrations** — an extensible TypeScript connector SDK and a growing community catalog.
+- **AI-native automation** — agent workflows, model and tool calls, retrieval, memory, and human approval steps.
+- **Reliable execution** — versioned workflows, retries, idempotency, cancellation, checkpoints, and execution history.
+- **Self-hosting** — deployable on your own infrastructure, with control over data and credentials.
+- **Security-first execution** — tenant boundaries, encrypted secrets, least privilege, and isolated runtimes for user code.
+
+## Current implementation
+
+| Component | Status |
+|---|---|
+| pnpm/Turborepo monorepo | Scaffolded |
+| Fastify API health endpoint | Implemented |
+| Background worker | Scaffold only; queue consumer not implemented |
+| Shared execution types | Implemented |
+| Workflow schema (Zod) | Initial implementation |
+| Structural workflow validation | Initial implementation |
+| Workflow execution engine | Planned |
+| React visual editor | Planned |
+| PostgreSQL/Prisma persistence | Planned |
+| Redis/BullMQ queue | Planned |
+| Connector SDK and catalog | Planned |
+| AI orchestration | Planned |
+| Sandboxed code execution | Planned |
 
 ## Planned architecture
 
@@ -39,32 +54,42 @@ The initial architecture is a modular monolith with independently deployed execu
 ```text
 apps/
   api/                 Fastify HTTP API
-  web/                 React workflow editor
   worker/              Background execution worker
 packages/
   shared/              Shared types and utilities
   workflow-schema/     Versioned workflow contracts and validation
-  workflow-engine/     Deterministic workflow execution core
-  integration-sdk/     Connector authoring contracts
-infrastructure/        Local development and deployment assets
+  workflow-engine/     Planned deterministic workflow execution core
+  integration-sdk/     Planned connector authoring contracts
 docs/                  Architecture and contributor documentation
+.github/workflows/     Continuous integration
 ```
 
 ## Requirements
 
 - Node.js 22 LTS
 - pnpm 10
-- Docker Engine and Docker Compose (for infrastructure services)
+
+Docker Engine and Docker Compose will be required as infrastructure services are added.
 
 ## Getting started
 
 ```bash
 corepack enable
 pnpm install
-pnpm dev
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
-The initial scaffold is intentionally minimal; application packages will gain runnable scripts as their first implementation milestones land.
+To start the API health endpoint:
+
+```bash
+pnpm --filter @nexus-flow/api dev
+```
+
+Then open `http://localhost:3001/health`.
+
+The worker is currently a scaffold and does not yet consume jobs.
 
 ## Development principles
 
@@ -75,6 +100,10 @@ The initial scaffold is intentionally minimal; application packages will gain ru
 5. Make retries and external side effects idempotent wherever possible.
 6. Keep connectors modular, typed, documented, and independently testable.
 
+## Contributing
+
+Contributions are welcome. Please open an issue to discuss substantial changes before submitting a pull request. Run the type checks, tests, and build locally before opening a PR.
+
 ## License
 
-NEXUS FLOW is intended to be released under **GNU Affero General Public License v3.0 only (AGPL-3.0-only)**. See [LICENSE](./LICENSE).
+NEXUS FLOW is released under **GNU Affero General Public License v3.0 only (AGPL-3.0-only)**. See [LICENSE](./LICENSE).
