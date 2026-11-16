@@ -2,7 +2,7 @@
   "name": "nexus-flow",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source, self-hosted, AI-native workflow automation",
+  "description": "Self-hosted, open-source workflow automation with a visual node editor, extensible integrations, and native AI-agent orchestration.",
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.22.0",
   "engines": {
