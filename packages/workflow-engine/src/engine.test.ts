@@ -3,13 +3,26 @@ import { WorkflowEngine } from "./engine.js";
 import { NodeRegistry } from "./registry.js";
 import { createExecutionPlan } from "./planner.js";
 import { WorkflowExecutionError } from "./types.js";
-import type { WorkflowDefinition } from "@nexus-flow/workflow-schema";
+import type { WorkflowDefinition, WorkflowNode } from "@nexus-flow/workflow-schema";
 
-const node = (id: string, type = id, category: "trigger" | "action" = "action", inputs: {id:string;name:string;dataType:"any";required?:boolean}[] = [], outputs: {id:string;name:string;dataType:"any"}[] = []) => ({
-  id, type, name: id, category, position: { x: 0, y: 0 }, inputs, outputs, config: {}
+const node = (
+  id: string,
+  type = id,
+  category: "trigger" | "action" = "action",
+  inputs: { id: string; name: string; dataType: "any"; required?: boolean }[] = [],
+  outputs: { id: string; name: string; dataType: "any"; required?: boolean }[] = []
+): WorkflowNode => ({
+  id,
+  type,
+  name: id,
+  category,
+  position: { x: 0, y: 0 },
+  inputs: inputs.map((port) => ({ ...port, required: port.required ?? false })),
+  outputs: outputs.map((port) => ({ ...port, required: port.required ?? false })),
+  config: {}
 });
 
-const workflow = (nodes: ReturnType<typeof node>[], edges: WorkflowDefinition["edges"] = []): WorkflowDefinition => ({
+const workflow = (nodes: WorkflowNode[], edges: WorkflowDefinition["edges"] = []): WorkflowDefinition => ({
   id: "wf-test", name: "Test workflow", description: "", version: 1, nodes, edges,
   settings: { timeoutMs: 300000, retries: 0, maxConcurrency: 4 }
 });
