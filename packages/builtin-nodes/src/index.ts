@@ -218,7 +218,7 @@ export const builtInNodes: NodeDefinition[] = [
     type: "logic.switch", name: "Switch", category: "logic",
     description: "Route execution to the first matching case handle or default",
     inputs: [port("input", "Input", "any")],
-    outputs: [port("default", "Default", "boolean")],
+    outputs: [port("default", "Default", "boolean"), { id: "*", name: "Case output", dataType: "boolean", required: false, dynamic: true }],
     configSchema: switchConfig,
     execute: ({ input, config }) => {
       const value = getPath(input.input, String(config.field));
