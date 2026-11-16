@@ -52,7 +52,7 @@ export const workflowSchema = z.object({
   version: z.number().int().positive(),
   nodes: z.array(nodeSchema).min(1),
   edges: z.array(edgeSchema).default([]),
-  settings: workflowSettingsSchema.default({})
+  settings: workflowSettingsSchema.default({\n    timeoutMs: 300_000,\n    retries: 3,\n    maxConcurrency: 5\n  })
 });
 
 export type PortDataType = z.infer<typeof portDataTypeSchema>;
