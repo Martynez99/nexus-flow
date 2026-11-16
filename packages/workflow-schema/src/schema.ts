@@ -9,7 +9,8 @@ export const portSchema = z.object({
   name: z.string().min(1),
   dataType: portDataTypeSchema.default("any"),
   required: z.boolean().default(false),
-  description: z.string().optional()
+  description: z.string().optional(),
+  dynamic: z.boolean().optional()
 });
 
 export const nodeCategorySchema = z.enum([
