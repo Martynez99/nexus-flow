@@ -38,7 +38,7 @@ Trigger nodes are entry-point adapters. The manual trigger receives the executio
 
 ## Conditional routing
 
-If/Else emits boolean `true` and `false` output handles. Switch emits a boolean on the selected case handle. Connect those handles using conditional edges. The execution engine uses conditional edge values to decide which branch should run.
+If/Else emits boolean `true` and `false` output handles. Switch emits a boolean on the selected case handle. Its wildcard output port allows workflow definitions to declare case handles from the node configuration; the structural validator accepts those dynamic handles. Connect the configured case handles and default handle using conditional edges. The execution engine uses conditional edge values to decide which branch should run.
 
 ## HTTP security
 
