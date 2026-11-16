@@ -60,6 +60,7 @@ describe("workflow validation", () => {
   it("accepts configured dynamic output handles", () => {
     const input = structuredClone(validWorkflow);
     input.nodes[0].outputs = [{ id: "*", name: "Dynamic output", dataType: "boolean", dynamic: true }];
+    input.nodes[1].inputs[0].dataType = "boolean";
     input.edges[0].sourceHandle = "ready";
     input.edges[0].type = "conditional";
     expect(validateWorkflow(input).valid).toBe(true);
