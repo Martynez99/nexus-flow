@@ -32,7 +32,7 @@ export interface ExecutionRequest {
 
 export interface NodeExecutionResult {
   nodeId: string;
-  status: "completed" | "failed" | "cancelled";
+  status: "completed" | "failed" | "cancelled" | "skipped";
   output?: NodeOutput;
   error?: { name: string; message: string };
   startedAt: string;
