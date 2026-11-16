@@ -32,7 +32,7 @@ function uniqueById<T extends { id: string }>(
 }
 
 function findPort(node: WorkflowNode, direction: "inputs" | "outputs", id: string): WorkflowPort | undefined {
-  return node[direction].find((port) => port.id === id);
+  return node[direction].find((port) => port.id === id) ?? node[direction].find((port) => port.dynamic === true);
 }
 
 export function validateWorkflow(input: unknown): WorkflowValidationResult {
