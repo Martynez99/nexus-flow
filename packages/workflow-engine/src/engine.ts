@@ -107,6 +107,13 @@ export class WorkflowEngine {
           const nodeStartedAt = new Date().toISOString();
           try {
             if (signal.aborted) throw new WorkflowExecutionError("Execution cancelled", "CANCELLED", node.id);
+            const incoming = workflow.edges.filter((edge) => edge.target === node.id);
+            const skippedUpstream = incoming.some((edge) => edge.type === "default" && nodeResults.some((result) => result.nodeId === edge.source && result.status === "skipped"));
+            const conditionalIncoming = incoming.filter((edge) => edge.type === "conditional");
+            const hasActiveConditional = conditionalIncoming.some((edge) => Boolean(outputs[edge.source]?.[edge.sourceHandle]));
+            if (skippedUpstream || (conditionalIncoming.length > 0 && !hasActiveConditional)) {
+              return { node, result: { nodeId: node.id, status: "skipped" as const, startedAt: nodeStartedAt, finishedAt: new Date().toISOString() } };
+            }
             const executor = this.registry.get(node.type);
             const input = resolveInputs(node, workflow, outputs, request.input);
             const context: NodeExecutionContext = {
