@@ -7,11 +7,11 @@ const get = (type: string) => {
   return node;
 };
 
-function request(type: string, input: Record<string, unknown>, config: Record<string, unknown> = {}) {
+async function request(type: string, input: Record<string, unknown>, config: Record<string, unknown> = {}) {
   const definition = get(type);
   const parsed = definition.configSchema.parse(config);
   const log = vi.fn();
-  return definition.execute({
+  return await definition.execute({
     node: { id: "node-1", type, name: type, category: definition.category, position: { x: 0, y: 0 }, inputs: definition.inputs, outputs: definition.outputs, config: parsed },
     input, config: parsed,
     context: { executionId: "exec-1", workflowId: "wf-1", workflowVersion: 1, nodeId: "node-1", signal: new AbortController().signal, log }
