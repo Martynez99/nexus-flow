@@ -105,6 +105,16 @@ describe("workflow execution engine", () => {
     expect(result.nodes.find((item) => item.nodeId === "yes-branch")?.status).toBe("completed");
     expect(result.nodes.find((item) => item.nodeId === "no-branch")?.status).toBe("skipped");
   });
+  it("rejects a node output that violates its declared port type", async () => {
+    const definition = workflow([node("typed", "typed", "action", [], [{ id: "count", name: "Count", dataType: "any" }])]);
+    const typedNode = definition.nodes[0];
+    if (typedNode) typedNode.outputs[0]!.dataType = "number";
+    const result = await new WorkflowEngine(new NodeRegistry().register("typed", () => ({ count: "not-a-number" }))).execute({
+      workflow: definition, executionId: "exec-type-check"
+    });
+    expect(result.status).toBe("failed");
+    expect(result.error?.message).toContain("expected number");
+  });
   it("supports cancellation before execution begins", async () => {
     const definition = workflow([node("first")]);
     const controller = new AbortController();
