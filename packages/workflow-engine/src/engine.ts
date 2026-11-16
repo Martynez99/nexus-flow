@@ -27,7 +27,7 @@ function resolveInputs(
   const inputs: NodeInput = {};
   if (node.category === "trigger") inputs.input = initialInput;
 
-  const incoming = workflow.edges.filter((edge) => edge.target === node.id);
+  const incoming = workflow.edges.filter((edge) => edge.target === node.id && (edge.type !== "conditional" || Boolean(outputs[edge.source]?.[edge.sourceHandle])));
   const connectedPorts = new Set<string>();
 
   for (const edge of incoming) {
