@@ -90,8 +90,8 @@ describe("workflow execution engine", () => {
   it("runs only the active conditional branch", async () => {
     const definition = workflow([
       node("condition", "condition", "action", [], [{ id: "yes", name: "Yes", dataType: "any" }, { id: "no", name: "No", dataType: "any" }]),
-      node("yes-branch", "branch.yes"),
-      node("no-branch", "branch.no")
+      node("yes-branch", "branch.yes", "action", [{ id: "in", name: "Input", dataType: "any" }]),
+      node("no-branch", "branch.no", "action", [{ id: "in", name: "Input", dataType: "any" }])
     ], [
       { id: "yes-edge", source: "condition", sourceHandle: "yes", target: "yes-branch", targetHandle: "in", type: "conditional" },
       { id: "no-edge", source: "condition", sourceHandle: "no", target: "no-branch", targetHandle: "in", type: "conditional" }
